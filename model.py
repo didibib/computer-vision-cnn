@@ -1,4 +1,4 @@
-import tensorflow as tf
+from tensorflow import keras
 import matplotlib.pyplot as plt
 import util
 import json
@@ -18,84 +18,82 @@ class Model:
         self._model = model
         self._compile()
 
-        self._scheduler_callback = tf.keras.callbacks.LearningRateScheduler(self._scheduler)
-
-        self._logging_callback = tf.keras.callbacks.LambdaCallback(
+        self._scheduler_callback = keras.callbacks.LearningRateScheduler(self._scheduler)
+        self._logging_callback = keras.callbacks.LambdaCallback(
             on_epoch_end=lambda epoch, logs: self._log.append(
-                (
-                    'train',
-                    {
-                    'epoch': epoch,
-                    'valid_loss': logs['val_loss'],
-                    'valid_acc': logs['val_accuracy'],
-                    'train_loss': logs['loss'],
-                    'train_acc': logs['accuracy']
-                    }
-                )
-            )
-        )
+                ('train',
+                {'epoch': epoch,
+                'val_loss': logs['val_loss'],
+                'val_acc': logs['val_accuracy'],
+                'train_loss': logs['loss'],
+                'train_acc': logs['accuracy']})))
 
     def run(self, train_images, train_labels, test_images, test_labels, draw = False):
-        # Train the model        
-        self._fit(train_images, train_labels)         
+        # Train the model
+        self._fit(train_images, train_labels)
+        self._save_model()
         # Test it's performance on the test images
         test_loss, test_acc = self._evaluate(test_images, test_labels)
-        print('\nTest accuracy:\n', test_acc)        
-        self._log.append(('test', {'test_acc': test_acc, 'test_loss': test_loss}))
+        print('\nTest accuracy:\n', test_acc)
+        self._log.append(('test', { 'test_acc': test_acc, 'test_loss': test_loss}))
         self._dump_log()
 
         # Probability
         probability_model = self._prob_model()
         predictions = probability_model.predict(test_images)
         if(draw):
-            self._draw(test_images, test_labels, predictions)    
+            self._draw(test_images, test_labels, predictions)
         
     # We assume everyting is in the right order
     def _dump_log(self):        
-        json_log = open(self.name + '_epoch_log.json', mode='wt', buffering=1)
-        json_log.write("{ fit_data : [\n")
-        for i in len(self._log):
+        json_log = open('json/' + self.name + '_epoch_log.json', mode='wt', buffering=1)
+        json_log.write("{\"train_data\" : [\n")
+        for i in range(len(self._log)):
             key, value = self._log[i]
             if key == 'train':
                 # Dump entry
                 json_log.write(json.dumps(value))
-                if self._log[i+1] == 'train':
-                    json_log.write(json.dumps(","))
-                json_log.write(json.dumps('\n'))
+                next_key, _ = self._log[i+1]
+                if next_key == 'train':
+                    json_log.write(",\n")
             elif key == 'test':
                 # Dump test data
                 json_log.write("],\n")
-                json_log.write(json.dumps('test:' + value + "\n"))
-        json_log.write(json.dumps('}'))
-        json.close()
+                json_log.write("\"test_data\" :")
+                json_log.write(json.dumps(value))
+        json_log.write('}')
+        json_log.close()
+        self._log.clear()
 
     def _compile(self):
         self._model.compile(
             optimizer='adam',
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
     
-    def _fit(self, datagen, train_images, train_labels):
+    def _fit(self, train_images, train_labels):
         # We split the training data into a training set and validation set with 80-20% split
         self._model.fit(
             train_images,
             train_labels,
             batch_size = 32,
-            epochs=10,
+            epochs=2,
             verbose=2,
             validation_split = .2,
             shuffle = True,
             callbacks = [
                 self._logging_callback
                 # self._scheduler_callback
-            ],
-        )
+            ])
+        
+    def _save_model(self):
+        self._model.save('models/'+ self.name)
     
     def _evaluate(self, test_images, test_labels): 
         return self._model.evaluate(test_images,  test_labels, verbose=2)
     
     def _prob_model(self):
-        return tf.keras.Sequential([self._model, tf.keras.layers.Softmax()])
+        return keras.Sequential([self._model, keras.layers.Softmax()])
 
     def _scheduler(self, epoch, lr):
         if epoch > 0 and epoch % 5 != 0:
@@ -117,10 +115,10 @@ class Model:
         plt.show()
         
 
-base = tf.keras.Sequential([
+base = keras.Sequential([
     # We don't use an input layer since we specify the input_shape in the next layer (conv2D in this case)
     # Our input is of size 28x28x1, our output will be 24x24x32, since we have no padding and use 32 filters
-    tf.keras.layers.Conv2D(
+    keras.layers.Conv2D(
         32,                           # Amount of filters this layer uses. Creates a depth of x
         5,                            # Size of the nxn filter, use one value to use it for all spatial dimensions
         1,                            # Stride
@@ -131,7 +129,7 @@ base = tf.keras.Sequential([
 
     # Another convolution layer. This creates more flexibility in expressing non-linear transformations without losing information,
     # as found here: https://stackoverflow.com/questions/46515248/intuition-behind-stacking-multiple-conv2d-layers-before-dropout-in-cnn
-    tf.keras.layers.Conv2D(
+    keras.layers.Conv2D(
         32,                           # Amount of filters this layer uses. Creates a depth of x
         5,                            # Size of the nxn filter, use one value to use it for all spatial dimensions
         1,                            # Stride
@@ -141,7 +139,7 @@ base = tf.keras.Sequential([
 
     # Pooling layer to achieve some translation invariance, as well as reduce resolution
     # Input will be of size 26x26x5, output will be 13x13x32
-    tf.keras.layers.MaxPool2D(
+    keras.layers.MaxPool2D(
         (2,2),            # Kernel size
         2,                # Stride
         padding = 'valid', # No padding
@@ -150,10 +148,10 @@ base = tf.keras.Sequential([
     # Dropout layer which will drop 25% of the inputs during training
     # Does not alter the input shape
     # Add randomization to prevent overfitting 
-    tf.keras.layers.Dropout(.25),
+    keras.layers.Dropout(.25),
 
     # Extract higher level features
-    tf.keras.layers.Conv2D(
+    keras.layers.Conv2D(
         32,
         5,
         1,
@@ -162,7 +160,7 @@ base = tf.keras.Sequential([
     ),
 
     # Again, we stack our convolation layers to get more non-linear flexibility
-    tf.keras.layers.Conv2D(
+    keras.layers.Conv2D(
         32,
         5,
         1,
@@ -171,17 +169,17 @@ base = tf.keras.Sequential([
     ),
 
     # Introduce more randomisation to prevent overfitting
-    tf.keras.layers.Dropout(.25),
+    keras.layers.Dropout(.25),
     
     #  Will change shape from 13x13x32 to 6x6x32
-    tf.keras.layers.MaxPool2D(
+    keras.layers.MaxPool2D(
         (2,2),
         2,
         padding = 'valid',
     ),
     
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(128, activation='relu'),
+    keras.layers.Flatten(),
+    keras.layers.Dense(128, activation='relu'),
     # Output layer
-    tf.keras.layers.Dense(10)
+    keras.layers.Dense(10)
 ])
