@@ -7,10 +7,10 @@ class Model:
     name = 0
     class_names = 0
 
-    _model = 0
-    _json_log = 0
-    _json_logging_callback = 0
-    _lr_scheduler_callback = 0
+    _model = 00
+    _logging_callback = 0
+    _scheduler_callback = 0
+    _log = []
 
     def __init__(self, model, class_names, name):
         self.name = name
@@ -18,35 +18,56 @@ class Model:
         self._model = model
         self._compile()
 
-        self._lr_scheduler_callback = tf.keras.callbacks.LearningRateScheduler(self._scheduler)
+        self._scheduler_callback = tf.keras.callbacks.LearningRateScheduler(self._scheduler)
 
-        self._json_logging_callback = tf.keras.callbacks.LambdaCallback(
-            on_epoch_end=lambda epoch, logs: self._json_log.write(
-            json.dumps({
-                'epoch': epoch,
-                'valid_loss': logs['val_loss'],
-                'valid_acc': logs['val_accuracy'],
-                'train_loss': logsð['loss'],
-                'train_acc': logs['accuracy']
-                }) + ',\n')
+        self._logging_callback = tf.keras.callbacks.LambdaCallback(
+            on_epoch_end=lambda epoch, logs: self._log.append(
+                (
+                    'train',
+                    {
+                    'epoch': epoch,
+                    'valid_loss': logs['val_loss'],
+                    'valid_acc': logs['val_accuracy'],
+                    'train_loss': logs['loss'],
+                    'train_acc': logs['accuracy']
+                    }
+                )
             )
+        )
 
     def run(self, train_images, train_labels, test_images, test_labels, draw = False):
-        # Train the model
-        self._json_log = open(self.name + '_epoch_log.json', mode='wt', buffering=1)
-        self._fit(train_images, train_labels)
-
+        # Train the model        
+        self._fit(train_images, train_labels)         
         # Test it's performance on the test images
         test_loss, test_acc = self._evaluate(test_images, test_labels)
-        print('\nTest accuracy:', test_acc)
-        
-        self._json_log.write(json.dumps({'test_acc': test_acc, 'test_loss': test_loss}))
+        print('\nTest accuracy:\n', test_acc)        
+        self._log.append(('test', {'test_acc': test_acc, 'test_loss': test_loss}))
+        self._dump_log()
+
+        # Probability
         probability_model = self._prob_model()
         predictions = probability_model.predict(test_images)
         if(draw):
-            self._draw(test_images, test_labels, predictions)
-        self._json_log.close()
+            self._draw(test_images, test_labels, predictions)    
         
+    # We assume everyting is in the right order
+    def _dump_log(self):        
+        json_log = open(self.name + '_epoch_log.json', mode='wt', buffering=1)
+        json_log.write("{ fit_data : [\n")
+        for i in len(self._log):
+            key, value = self._log[i]
+            if key == 'train':
+                # Dump entry
+                json_log.write(json.dumps(value))
+                if self._log[i+1] == 'train':
+                    json_log.write(json.dumps(","))
+                json_log.write(json.dumps('\n'))
+            elif key == 'test':
+                # Dump test data
+                json_log.write("],\n")
+                json_log.write(json.dumps('test:' + value + "\n"))
+        json_log.write(json.dumps('}'))
+        json.close()
 
     def _compile(self):
         self._model.compile(
@@ -54,7 +75,7 @@ class Model:
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
     
-    def _fit(self, train_images, train_labels):
+    def _fit(self, datagen, train_images, train_labels):
         # We split the training data into a training set and validation set with 80-20% split
         self._model.fit(
             train_images,
@@ -65,9 +86,9 @@ class Model:
             validation_split = .2,
             shuffle = True,
             callbacks = [
-                self._json_logging_callback,
-                self._lr_scheduler_callback
-            ]
+                self._logging_callback
+                # self._scheduler_callback
+            ],
         )
     
     def _evaluate(self, test_images, test_labels): 
