@@ -50,5 +50,6 @@ def get_proc_images(locations):
     images = []
     for loc in locations:
         img = load_img('st-40/proc-images/' + loc)
+        img = tf.cast(img, tf.float32)
         images.append(np.array(img))
     return np.array(images)

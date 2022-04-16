@@ -10,7 +10,6 @@ from PIL import Image
 print('-- Reading ST-40 actions')
 with open('st-40/actions.txt', 'r') as f:
     class_names = list(map(str.strip, f.readlines()))
-
 dictionary = util.create_dict_index(class_names)
 
 print('-- Reading ST-40 processed train images')
