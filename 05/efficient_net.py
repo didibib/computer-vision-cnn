@@ -1,19 +1,20 @@
 from tensorflow import keras
+from tensorflow.keras import layers
 
 # https://towardsdatascience.com/mobilenetv2-inverted-residuals-and-linear-bottlenecks-8a4362f4ffd5
 def bottleneck_block(filters, filter_size=(3,3), s = 1):
-    module = [ keras.Conv2D(filters, (1,1)),
-               keras.BatchNormalization(),
+    module = [ layers.Conv2D(filters, (1,1)),
+               layers.BatchNormalization(),
             #  keras.Activation('relu6'),
-               keras.DepthwiseConv2D(filter_size, stride = s),
-               keras.BatchNormalization(),
+               layers.DepthwiseConv2D(filter_size, strides = (s,s)),
+               layers.BatchNormalization(),
             #  keras.Activation('relu6'),
-               keras.Conv2D(filters, (1,1)),
-               keras.BatchNormalization()]
+               layers.Conv2D(filters, (1,1)),
+               layers.BatchNormalization()]
     return module
 
-efficient_net = keras.Sequential([
-    keras.Conv2D(32, (3,3), stride = 2),
+_efficient_net = [
+    [layers.Conv2D(32, (3,3), strides = (2,2))],
     bottleneck_block(16),
     
     bottleneck_block(24, s = 2),
@@ -37,11 +38,18 @@ efficient_net = keras.Sequential([
 
     bottleneck_block(192),
 
-    keras.Conv2D(1280, (1,1)),
-    keras.AvgPooling2D(),
-    keras.Dense(256, activation='relu'),
-    keras.Dense(40)
-])
+    [layers.Conv2D(1280, (1,1)),
+    layers.AvgPool2D(),
+    layers.Dense(256, activation='relu'),
+    layers.Dense(40)]
+]
+
+def efficient_net():
+    model = []
+    for i in _efficient_net:
+        for j in i:
+            model.append(j)
+    return keras.Sequential(model)
 
 
 

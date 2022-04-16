@@ -1,58 +1,42 @@
 from tensorflow import keras
-from tensorflow.image import resize_with_pad
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import smart_resize
+from keras.preprocessing.image import load_img, img_to_array
 import matplotlib.pyplot as plt
-import tensorflow as tf
 import cv2 as cv
-from PIL import Image, ImageOps
+from model import Model
+import efficient_net as en
+from PIL import Image
 
-# Stanford 40 data set
-with open('st-40/testtrain/train.txt', 'r') as f:
-    train_files = list(map(str.strip, f.readlines()))
-    train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
-    print(f'Train files ({len(train_files)}):\n\t{train_files}')
-    print(f'Train labels ({len(train_labels)}):\n\t{train_labels}\n')
+print('-- Reading ST-40 actions')
+with open('st-40/actions.txt', 'r') as f:
+    class_names = list(map(str.strip, f.readlines()))
 
-with open('st-40/testtrain/test.txt', 'r') as f:
+print('-- Reading ST-40 processed images')
+with open('st-40/train.txt', 'r') as f:
+    train_files = list(map(str.strip, f.readlines()))    
+train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
+train_images = [] #list(map(lambda loc: Image.open('st-40/proc-images/'+ loc), train_files))
+for loc in train_files:
+    img = load_img('st-40/proc-images/' + loc)
+    train_images.append(img_to_array(img))
+
+with open('st-40/test.txt', 'r') as f:
     test_files = list(map(str.strip, f.readlines()))
-    test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
-    print(f'Test files ({len(test_files)}):\n\t{test_files}')
-    print(f'Test labels ({len(test_labels)}):\n\t{test_labels}\n')
-    
-action_categories = sorted(list(set(['_'.join(name.split('_')[:-1]) for name in train_files])))
-print(f'Action categories ({len(action_categories)}):\n{action_categories}')
+test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
+test_images = [] #list(map(lambda loc: Image.open('st-40/proc-images/'+ loc), test_files))
+for loc in test_files:
+    img = load_img('st-40/proc-images/' + loc)
+    test_images.append(img_to_array(img))
+    # file = Image.open('st-40/proc-images/' + loc)
+    # test_images.append(img_to_array(file.copy()))
+    # file.close()
 
-# img = Image.open('st-40/images/test2.jpeg')
-# img2 = ImageOps.fit(img, (224, 244), method = 0,
-#                    bleed = 0.0, centering =(0.5, 0.5))
+print(train_images.shape())
 
-# plt.imshow(img2)
-# plt.show()
-
-        
-
-# plt.imshow(img)
-# plt.show()
+print('-- Starting ST-40 model')
+st_40_eff_net = Model(en.efficient_net(), class_names, 'st-40-effnet')
+st_40_eff_net.run(train_images, train_labels, test_images, test_labels)
 
 
-# resized = resize_with_pad(img, 224, 224)
-# plt.imshow(resized)
-# plt.show()
-
-def processImage(img, size):
-    (dimX, dimY) = img.size
-    maxDim = max(dimX, dimY)
-    padded = ImageOps.pad(img, (maxDim, maxDim), color=(0,0,0))
-    return padded.resize(size)
-
-size = (224, 224)
-l = lambda loc: processImage(Image.open('st-40/images/'+ loc), size)
-train_images = list(map(l, train_files))
-test_images = list(map(l, test_files))
-
-plt.imshow(train_images[0])
-plt.show()
 
 # TV-Human interaction data set
 # set_1_indices = [[2,14,15,16,18,19,20,21,24,25,26,27,28,32,40,41,42,43,44,45,46,47,48,49,50],
