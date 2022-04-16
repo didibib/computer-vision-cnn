@@ -45,11 +45,11 @@ _efficient_net = [
 ]
 
 def efficient_net():
-    model = []
+    model = keras.Sequential()
     for i in _efficient_net:
         for j in i:
-            model.append(j)
-    return keras.Sequential(model)
+            model.add(j)
+    return model
 
 
 
