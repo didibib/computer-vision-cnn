@@ -1,4 +1,5 @@
-from PIL import Image, ImageOps
+import util
+from PIL import Image
 
 # Stanford 40 data set
 with open('st-40/train.txt', 'r') as f:
@@ -23,14 +24,8 @@ file.close()
 #print(f'Action categories ({len(action_categories)}):\n{action_categories}')
 print('-- Loaded filenames')
 
-def processImage(img, size):
-    (dimX, dimY) = img.size
-    maxDim = max(dimX, dimY)
-    padded = ImageOps.pad(img, (maxDim, maxDim), color=0)
-    return padded.resize(size)
-
-size = (224, 224)
-l = lambda loc: processImage(Image.open('st-40/images/'+ loc), size)
+size = (112, 112)
+l = lambda loc: util.resize_and_pad(Image.open('st-40/images/'+ loc), size)
 print('-- Processing images')
 train_images = list(map(l, train_files))
 test_images = list(map(l, test_files))

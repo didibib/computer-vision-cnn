@@ -39,10 +39,10 @@ class Model:
         #self._dump_log()
 
         # Probability
-        probability_model = self._prob_model()
-        predictions = probability_model.predict(test_images)
-        if(draw):
-            self._draw(test_images, test_labels, predictions)
+        # probability_model = self._prob_model()
+        # predictions = probability_model.predict(test_images)
+        # if(draw):
+        #     self._draw(test_images, test_labels, predictions)
         
     # We assume everyting is in the right order
     def _dump_log(self):        
@@ -76,9 +76,9 @@ class Model:
         self._model.fit(
             train_images,
             train_labels,
-            batch_size = 32,
-            epochs=2,
-            verbose=2,
+            batch_size = 16,
+            epochs=10,
+            verbose=1,
             validation_split = .2,
             shuffle = True,
             callbacks = [
@@ -88,7 +88,7 @@ class Model:
         
     def _save_model(self):
         self._model.save('models/'+ self.name)
-    
+   
     def _evaluate(self, test_images, test_labels): 
         return self._model.evaluate(test_images,  test_labels, verbose=2)
     
