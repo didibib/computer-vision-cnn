@@ -3,7 +3,6 @@
 import util
 from model import Model
 from p5_model import p5
-from efficient_net import b0
 
 print('-- Reading ST40 actions')
 class_names = util.get_class_names('st-40/actions.txt')
@@ -27,5 +26,5 @@ sh_test_lbl, sh_test_img = util.unison_shuffled_copies(test_labels, test_images)
 sh_train_lbl, sh_train_img = util.unison_shuffled_copies(train_labels, train_images)
 
 print('-- Starting ST40 model')
-p5net = Model(b0(), class_names, 'st40_frames')
+p5net = Model(p5, class_names, 'st40_frames')
 p5net.run(sh_train_img, sh_train_lbl, sh_test_img, sh_test_lbl)

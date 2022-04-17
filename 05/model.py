@@ -1,4 +1,5 @@
 from tensorflow import keras
+import tensorflow as tf
 import matplotlib.pyplot as plt
 import util
 import json
@@ -73,14 +74,18 @@ class Model:
     
     def _fit(self, train_images, train_labels):
         # We split the training data into a training set and validation set with 80-20% split
+        split = -1 * int(len(train_images) * 0.2)
+        
+        train_dataset = tf.data.Dataset.from_tensor_slices((train_images[:split], train_labels[:split]))
+        train_dataset = train_dataset.batch(32)
+
+        val_dataset = tf.data.Dataset.from_tensor_slices((train_images[split:], train_labels[split:]))
+        val_dataset = val_dataset.batch(32)
         self._model.fit(
-            train_images,
-            train_labels,
-            batch_size = 16,
+            train_dataset,
+            validation_data = val_dataset,
             epochs=10,
             verbose=1,
-            validation_split = .2,
-            shuffle = True,
             callbacks = [
                 self._logging_callback
                 # self._scheduler_callback
