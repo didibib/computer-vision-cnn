@@ -45,8 +45,3 @@ def efficient_net():
     model.add(layers.Dense(40))
 
     return model
-
-
-
-
-

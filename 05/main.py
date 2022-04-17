@@ -2,6 +2,7 @@ import efficient_net as en
 import util
 from tensorflow import keras
 from model import Model
+from p4_model import p4
 
 print('-- Reading ST-40 actions')
 with open('st-40/actions.txt', 'r') as f:
@@ -23,10 +24,8 @@ test_labels = util.convert_to_index(test_labels_str, dictionary)
 test_images = util.get_proc_images(test_files)
 
 print('-- Starting ST-40 model')
-st_40_eff_net = Model(en.efficient_net(), class_names, 'st-40-effnet')
+st_40_eff_net = Model(p4, class_names, 'st-40-effnet')
 st_40_eff_net.run(train_images, train_labels, test_images, test_labels)
-
-
 
 # TV-Human interaction data set
 # set_1_indices = [[2,14,15,16,18,19,20,21,24,25,26,27,28,32,40,41,42,43,44,45,46,47,48,49,50],
