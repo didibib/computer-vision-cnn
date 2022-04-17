@@ -1,11 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import efficient_net as en
 import util
 from tensorflow import keras
-from keras.preprocessing.image import load_img
 from model import Model
-from PIL import Image
 
 print('-- Reading ST-40 actions')
 with open('st-40/actions.txt', 'r') as f:
@@ -14,7 +10,7 @@ dictionary = util.create_dict_index(class_names)
 
 print('-- Reading ST-40 processed train images')
 with open('st-40/train.txt', 'r') as f:
-    train_files = list(map(str.strip, f.readlines()))    
+    train_files = list(map(str.strip, f.readlines()))
 train_labels_str = ['_'.join(name.split('_')[:-1]) for name in train_files]
 train_labels = util.convert_to_index(train_labels_str, dictionary)
 train_images = util.get_proc_images(train_files)
@@ -28,7 +24,7 @@ test_images = util.get_proc_images(test_files)
 
 print('-- Starting ST-40 model')
 st_40_eff_net = Model(en.efficient_net(), class_names, 'st-40-effnet')
-st_40_eff_net.run(train_images[0:10], train_labels[0:10], test_images[0:10], test_labels[0:10])
+st_40_eff_net.run(train_images, train_labels, test_images, test_labels)
 
 
 

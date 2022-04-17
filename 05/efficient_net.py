@@ -5,16 +5,16 @@ from tensorflow.keras import layers
 # https://towardsdatascience.com/creating-deeper-bottleneck-resnet-from-scratch-using-tensorflow-93e11ff7eb02
 def bottleneck_block(filters, filter_size=(3,3), stride = 1):
     block = keras.Sequential()
-    block.add(layers.Conv2D(filters, 1))
+    block.add(layers.Conv2D(filters, 1, padding = 'same'))
     block.add(layers.BatchNormalization())
-    block.add(layers.DepthwiseConv2D(filter_size, strides = (stride, stride)))
-    block.add(layers.Conv2D(filters, 1))
+    block.add(layers.DepthwiseConv2D(filter_size, strides = (stride, stride), padding = 'same'))
+    block.add(layers.Conv2D(filters, 1, padding = 'same'))
     block.add(layers.BatchNormalization())
     return block
 
 def efficient_net():
     model = keras.Sequential()
-    model.add(layers.Conv2D(32, (3,3), strides = (2,2))),
+    model.add(layers.Conv2D(32, (3,3), strides = (2,2), padding = 'same')),
     model.add(bottleneck_block(16)),
 
     model.add(bottleneck_block(24, stride = 2)),
@@ -36,10 +36,11 @@ def efficient_net():
     model.add(bottleneck_block(192, (5,5))),
     model.add(bottleneck_block(192, (5,5))),
 
-    model.add(bottleneck_block(192)),  
+    model.add(bottleneck_block(320)),  
 
-    model.add(layers.Conv2D(1280, (1,1))),
+    model.add(layers.Conv2D(1280, (1,1), padding = 'same')),
     model.add(layers.AvgPool2D()),
+    model.add(layers.Flatten()),
     model.add(layers.Dense(256, activation = 'relu')),
     model.add(layers.Dense(40))
 
