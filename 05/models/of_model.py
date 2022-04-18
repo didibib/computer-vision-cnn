@@ -14,7 +14,7 @@ of = keras.Sequential([
     layers.Conv3D(
         64, (3,3,3), 1, padding = 'valid', activation = 'relu'),  
     layers.MaxPool3D(
-        (2,2,2), 2, padding = 'valid'),
+        (2,2,4), 2, padding = 'valid'),
     layers.BatchNormalization(), 
     
     layers.Flatten(),
