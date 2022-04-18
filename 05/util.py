@@ -58,6 +58,7 @@ def get_images(directory, locations, type = ''):
     for loc in locations:
         img = load_img(directory + loc + type)
         img = tf.cast(img, tf.float32)
+        img /= 255
         images.append(np.array(img))
     return np.array(images)
 

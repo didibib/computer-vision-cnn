@@ -1,6 +1,6 @@
-05/st-40/images/*
-05/st-40/proc-images/*
-05/tv-hi/*
+images/
+images_proc/
+tv-hi_data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

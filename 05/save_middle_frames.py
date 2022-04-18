@@ -30,18 +30,18 @@ def save_middle_frame(orig, dest):
     cv2.imwrite(dest, img)
 
 for item in tv_hi_data.set_1:
-    save_middle_frame('tv-hi/videos/' + item + '.avi', 'tv-hi/middle-frames/' + item + '.jpg')
+    save_middle_frame('tv-hi_data/videos/' + item + '.avi', 'tv-hi_data/middle_frames/' + item + '.jpg')
 
 for item in tv_hi_data.set_2:
-    save_middle_frame('tv-hi/videos/' + item + '.avi', 'tv-hi/middle-frames/' + item + '.jpg')
+    save_middle_frame('tv-hi_data/videos/' + item + '.avi', 'tv-hi_data/middle_frames/' + item + '.jpg')
 
-size = (112, 112)
+size = (164, 164)
 for item in tv_hi_data.set_1:
-    loc = 'tv-hi/middle-frames/'+ item + '.jpg'
+    loc = 'tv-hi_data/middle_frames/'+ item + '.jpg'
     img = util.resize_and_pad(Image.open(loc), size)
     img.save(loc)
 
 for item in tv_hi_data.set_2:
-    loc = 'tv-hi/middle-frames/'+ item + '.jpg'
+    loc = 'tv-hi_data/middle_frames/'+ item + '.jpg'
     img = util.resize_and_pad(Image.open(loc), size)
     img.save(loc)
