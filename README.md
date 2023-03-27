@@ -1,5 +1,10 @@
-# Computer Vision CNN
-Developed for the course 'Computer Vision (INFOMCV)'. Written in Python.
+
+
+## About
+Convolutional Neural Network implmentation for the course Computer Vision (INFOMCV) at Utrecht University. </br>
+By </br>
+Merijn Schepers </br>
+Tariq Bakhtali </br>
 
 Uses the following dataset:
 - Stanford 40
